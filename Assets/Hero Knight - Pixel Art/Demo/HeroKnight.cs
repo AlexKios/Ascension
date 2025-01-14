@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using UnityEngine.SceneManagement;
 
 public class HeroKnight : MonoBehaviour {
 
@@ -29,6 +30,7 @@ public class HeroKnight : MonoBehaviour {
     private bool                m_isWallSliding = false;
     private bool                m_grounded = false;
     private bool                m_rolling = false;
+    private bool                m_isBlocking = false;
     private int                 m_facingDirection = 1;
     private int                 m_currentAttack = 0;
     private float               m_timeSinceAttack = 0.0f;
@@ -43,6 +45,11 @@ public class HeroKnight : MonoBehaviour {
     private float               m_airDashCooldown = 0.5f; // Cooldown between dashes
     private float               m_airDashTimer = 0.1f;
     private bool                m_isAirDashing = false;
+
+    public int health = 100;
+    public GameObject deathEffect;
+
+    HeroWeapon weapon = new HeroWeapon();
 
     // Use this for initialization
     void Start ()
@@ -140,6 +147,7 @@ public class HeroKnight : MonoBehaviour {
         // Set the wall slide animation state
         m_animator.SetBool("WallSlide", m_isWallSliding);
 
+
         //Death
         if (Input.GetKeyDown("e") && !m_rolling)
         {
@@ -147,11 +155,6 @@ public class HeroKnight : MonoBehaviour {
             m_animator.SetTrigger("Death");
             m_isDead = true;
         }
-
-        //Hurt
-        else if (Input.GetKeyDown("q") && !m_rolling)
-            m_animator.SetTrigger("Hurt");
-
         //Attack
         else if (Input.GetMouseButtonDown(0) && m_timeSinceAttack > 0.25f && !m_rolling && !m_isDead)
         {
@@ -175,12 +178,16 @@ public class HeroKnight : MonoBehaviour {
         // Block
         else if (Input.GetMouseButtonDown(1) && !m_rolling)
         {
+            m_isBlocking = true;
             m_animator.SetTrigger("Block");
             m_animator.SetBool("IdleBlock", true);
         }
 
         else if (Input.GetMouseButtonUp(1))
+        {
+            m_isBlocking = false;
             m_animator.SetBool("IdleBlock", false);
+        }
 
         if (m_airDashTimer > 0)
         {
@@ -306,6 +313,24 @@ public class HeroKnight : MonoBehaviour {
         }
     }
 
+    public void TakeDamage(int damage)
+    {
+        if (m_isBlocking || m_rolling) return;
+
+        health -= damage;
+
+        m_animator.SetTrigger("Hurt");
+
+        if (health <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
     private IEnumerator PerformAirDash()
     {
         // Store original gravity scale and velocity
