@@ -2,6 +2,8 @@
 using System.Collections;
 using System;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
+using UnityEngine.UI;
 
 public class HeroKnight : MonoBehaviour {
 
@@ -21,7 +23,7 @@ public class HeroKnight : MonoBehaviour {
     [SerializeField] float      m_airDashDuration = 0.2f;
 
     private Animator            m_animator;
-    private Rigidbody2D         m_body2d;
+    public  Rigidbody2D         m_body2d { get; private set; }
     private Sensor_HeroKnight   m_groundSensor;
     private Sensor_HeroKnight   m_wallSensorR1;
     private Sensor_HeroKnight   m_wallSensorR2;
@@ -37,7 +39,7 @@ public class HeroKnight : MonoBehaviour {
     private float               m_delayToIdle = 0.0f;
     private float               m_rollDuration = 8.0f / 14.0f;
     private float               m_rollCurrentTime;
-    private bool                m_isDead=false;
+    public  bool                m_isDead { get; private set; } = false;
     private float               m_jumpHoldTime = 0.0f;
     private bool                m_isChargingSuperJump = false;
     private float               m_wallJumpBufferTimeCounter = 0.0f;
@@ -46,7 +48,9 @@ public class HeroKnight : MonoBehaviour {
     private float               m_airDashTimer = 0.1f;
     private bool                m_isAirDashing = false;
 
-    public int health = 100;
+    public int maxHealth = 100;
+    private int currentHealth;
+    public Slider healthBar;
     public GameObject deathEffect;
 
     HeroWeapon weapon = new HeroWeapon();
@@ -61,6 +65,9 @@ public class HeroKnight : MonoBehaviour {
         m_wallSensorR2 = transform.Find("WallSensor_R2").GetComponent<Sensor_HeroKnight>();
         m_wallSensorL1 = transform.Find("WallSensor_L1").GetComponent<Sensor_HeroKnight>();
         m_wallSensorL2 = transform.Find("WallSensor_L2").GetComponent<Sensor_HeroKnight>();
+
+        currentHealth = maxHealth;
+        UpdateHealthBar();
     }
 
     // Update is called once per frame
@@ -146,17 +153,9 @@ public class HeroKnight : MonoBehaviour {
 
         // Set the wall slide animation state
         m_animator.SetBool("WallSlide", m_isWallSliding);
-
-
-        //Death
-        if (Input.GetKeyDown("e") && !m_rolling)
-        {
-            m_animator.SetBool("noBlood", m_noBlood);
-            m_animator.SetTrigger("Death");
-            m_isDead = true;
-        }
+        
         //Attack
-        else if (Input.GetMouseButtonDown(0) && m_timeSinceAttack > 0.25f && !m_rolling && !m_isDead)
+        if (Input.GetMouseButtonDown(0) && m_timeSinceAttack > 0.25f && !m_rolling && !m_isDead)
         {
             m_currentAttack++;
 
@@ -207,7 +206,6 @@ public class HeroKnight : MonoBehaviour {
             else if (!m_grounded && !m_isWallSliding && !m_isAirDashing && m_airDashTimer <= 0 && !m_isDead)
             {
                 m_isAirDashing = true;
-                //  m_animator.SetTrigger("Roll"); // Reuse the roll animation for air dash
                 StartCoroutine(PerformAirDash());
             }
         }
@@ -317,19 +315,21 @@ public class HeroKnight : MonoBehaviour {
     {
         if (m_isBlocking || m_rolling) return;
 
-        health -= damage;
+        currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // Ensure health is within range
+        UpdateHealthBar();
 
         m_animator.SetTrigger("Hurt");
-
-        if (health <= 0)
+        if (currentHealth <= 0)
         {
+            m_isDead = true;
             Die();
         }
     }
 
     void Die()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        StartCoroutine(PlayAnimationAndWait());
     }
     private IEnumerator PerformAirDash()
     {
@@ -341,11 +341,15 @@ public class HeroKnight : MonoBehaviour {
         m_body2d.gravityScale = 0;
         m_body2d.velocity = Vector2.zero;
 
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Boss"), true);
+
         // Apply air dash velocity in the direction the character is facing
         m_body2d.velocity = new Vector2(originalVelocity.x * m_airDashSpeed, 0);
   
         // Wait for the air dash duration
         yield return new WaitForSeconds(m_airDashDuration);
+
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Boss"), false);
 
         // Restore gravity and vertical velocity (if any)
         m_body2d.gravityScale = originalGravityScale;
@@ -354,6 +358,33 @@ public class HeroKnight : MonoBehaviour {
         // End air dash and start cooldown
         m_isAirDashing = false;
         m_airDashTimer = m_airDashCooldown;
+    }
+
+    public IEnumerator PlayAnimationAndWait()
+    {
+        // Trigger the animation
+        m_animator.SetBool("noBlood", m_noBlood);
+        m_animator.SetTrigger("Death");
+        m_isDead = true;
+        // Wait until the animation state is active
+        while (!GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Death"))
+        {
+            yield return null;
+        }
+
+        // Wait until the animation is complete
+        while (GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+        {
+            yield return null;
+        }
+
+        Debug.Log($"Animation Death completed.");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void UpdateHealthBar()
+    {
+        healthBar.value = (float)currentHealth / maxHealth; // Normalize to 0-1 for the Slider
     }
 
     // Animation Events

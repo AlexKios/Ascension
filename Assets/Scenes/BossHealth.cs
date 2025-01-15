@@ -18,7 +18,7 @@ public class BossHealth : MonoBehaviour
 
         if (health <= 0)
         {
-            StartCoroutine(PlayAnimationAndWait());
+            StartCoroutine(PlayDeathAndWait());
         }
     }
 
@@ -53,7 +53,7 @@ public class BossHealth : MonoBehaviour
         }
     }
 
-    public IEnumerator PlayAnimationAndWait()
+    public IEnumerator PlayDeathAndWait()
     {
         // Trigger the animation
         GetComponent<Animator>().SetTrigger("Death");
@@ -70,7 +70,6 @@ public class BossHealth : MonoBehaviour
             yield return null;
         }
 
-        Debug.Log($"Animation Death completed.");
         Die();
     }
 }

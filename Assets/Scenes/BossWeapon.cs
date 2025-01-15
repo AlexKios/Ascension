@@ -16,11 +16,26 @@ public class BossWepon : MonoBehaviour
         Vector3 pos = transform.position;
         pos += transform.right * attackOffset.x;
         pos += transform.up * attackOffset.y;
-        
+
+        Debug.Log($"Attack Mask: {LayerMask.LayerToName(attackMask.value)}");
+
         Collider2D colInfo = Physics2D.OverlapCircle(pos, attackRange, attackMask);
+
+        Debug.Log($"Boss Position: {transform.position}, Attack Position: {pos}");
+
+        Debug.Log(colInfo + "Attack1");
+
         if (colInfo != null)
         {
+            var hero = colInfo.GetComponent<HeroKnight>();
+            if (hero != null)
+            {
+                hero.TakeDamage(attack1Damage);
+                Debug.Log("HeroKnight hit successfully.");
+            }
+
             colInfo.GetComponent<HeroKnight>().TakeDamage(attack1Damage);
+            Debug.Log("HeroKnight hit successfully.");
         }
     }
 
@@ -31,6 +46,9 @@ public class BossWepon : MonoBehaviour
         pos += transform.up * attackOffset.y;
 
         Collider2D colInfo = Physics2D.OverlapCircle(pos, attackRange, attackMask);
+
+        Debug.Log(colInfo + "Attack2");
+
         if (colInfo != null)
         {
             colInfo.GetComponent<HeroKnight>().TakeDamage(attack2Damage);
