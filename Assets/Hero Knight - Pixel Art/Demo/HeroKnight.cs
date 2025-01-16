@@ -16,11 +16,12 @@ public class HeroKnight : MonoBehaviour {
     [SerializeField] GameObject m_slideDust;
     [SerializeField] float      m_wallJumpBufferTime = 0.05f;
     [SerializeField] int        m_maxJumps = 2;
-    [SerializeField] bool       m_hasSuperJump = true;
-    [SerializeField] bool       m_hasDoubleJump = true;
-    [SerializeField] bool       m_hasAirDashed = true;
+    [SerializeField] public bool       m_hasSuperJump = true;
+    [SerializeField] public bool       m_hasDoubleJump = true;
+    [SerializeField] public bool       m_hasAirDashed = true;
     [SerializeField] float      m_airDashSpeed = 15.0f;
     [SerializeField] float      m_airDashDuration = 0.2f;
+    [SerializeField] private    GameObject deathMenuUI; // Assign the death menu panel from the existing Canvas.
 
     private Animator            m_animator;
     public  Rigidbody2D         m_body2d { get; private set; }
@@ -229,7 +230,7 @@ public class HeroKnight : MonoBehaviour {
                 jumpForce = Mathf.Lerp(m_jumpForce, m_superJumpForce, m_jumpHoldTime / m_superJumpChargeTime);
                 m_isChargingSuperJump = false; // Reset super jump charge for grounded jump
             }
-            else
+            else if (m_hasDoubleJump)
             {
                 jumpForce = m_jumpForce; // Use standard jump force for the double jump
             }
@@ -379,7 +380,32 @@ public class HeroKnight : MonoBehaviour {
         }
 
         Debug.Log($"Animation Death completed.");
+        ShowDeathMenu();
+    }
+
+    private void ShowDeathMenu()
+    {
+        if (deathMenuUI != null)
+        {
+            deathMenuUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("Death menu UI is not assigned in the inspector.");
+        }
+    }
+
+    // Called by the "Play Again" button
+    public void PlayAgain()
+    {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // Called by the "Quit" button
+    public void QuitGame()
+    {
+        Application.Quit();
+        Debug.Log("Game Quit!");
     }
 
     private void UpdateHealthBar()
