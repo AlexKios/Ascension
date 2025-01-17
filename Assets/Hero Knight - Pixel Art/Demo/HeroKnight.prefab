@@ -140,6 +140,18 @@ MonoBehaviour:
   m_superJumpChargeTime: 1
   m_noBlood: 0
   m_slideDust: {fileID: 1038168246061390451, guid: 8b8c8cc6774fb074cb9139cc631b108e, type: 3}
+  m_wallJumpBufferTime: 0.05
+  m_maxJumps: 2
+  m_hasSuperJump: 1
+  m_hasDoubleJump: 1
+  m_hasAirDashed: 1
+  m_hasWallJump: 1
+  m_airDashSpeed: 15
+  m_airDashDuration: 0.2
+  deathMenuUI: {fileID: 0}
+  maxHealth: 100
+  healthBar: {fileID: 0}
+  deathEffect: {fileID: 0}
 --- !u!95 &2655505060201611074
 Animator:
   serializedVersion: 5
@@ -207,7 +219,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 3.125, y: 1.71875}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -277,7 +289,7 @@ BoxCollider2D:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0}
     oldSize: {x: 3.125, y: 1.71875}
-    newSize: {x: 2, y: 2}
+    newSize: {x: 3.125, y: 1.71875}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0

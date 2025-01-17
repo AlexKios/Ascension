@@ -8,7 +8,7 @@ public class PickUpDoubleJump : MonoBehaviour
     public string message = "Item Collected!"; // Optional message or feedback
     public bool destroyOnPickup = true; // Should the item disappear after pickup?
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag(playerTag))
         {
@@ -18,6 +18,10 @@ public class PickUpDoubleJump : MonoBehaviour
             {
                 player.m_hasDoubleJump = true; // Example boolean in player script
                 Debug.Log(message);
+            }
+            else
+            {
+                Debug.LogWarning("HeroKnight component not found on the player!");
             }
 
             // Destroy the item if needed

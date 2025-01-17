@@ -16,9 +16,10 @@ public class HeroKnight : MonoBehaviour {
     [SerializeField] GameObject m_slideDust;
     [SerializeField] float      m_wallJumpBufferTime = 0.05f;
     [SerializeField] int        m_maxJumps = 2;
-    [SerializeField] public bool       m_hasSuperJump = true;
-    [SerializeField] public bool       m_hasDoubleJump = true;
-    [SerializeField] public bool       m_hasAirDashed = true;
+    [SerializeField] public bool m_hasSuperJump = true;
+    [SerializeField] public bool m_hasDoubleJump = true;
+    [SerializeField] public bool m_hasAirDashed = true;
+    [SerializeField] public bool m_hasWallJump = true;
     [SerializeField] float      m_airDashSpeed = 15.0f;
     [SerializeField] float      m_airDashDuration = 0.2f;
     [SerializeField] private    GameObject deathMenuUI; // Assign the death menu panel from the existing Canvas.
@@ -204,7 +205,7 @@ public class HeroKnight : MonoBehaviour {
                 m_animator.SetTrigger("Roll");
                 m_body2d.velocity = new Vector2(m_facingDirection * m_rollForce, m_body2d.velocity.y);
             }
-            else if (!m_grounded && !m_isWallSliding && !m_isAirDashing && m_airDashTimer <= 0 && !m_isDead)
+            else if (!m_grounded && !m_isWallSliding && !m_isAirDashing && m_airDashTimer <= 0 && !m_isDead && m_hasAirDashed)
             {
                 m_isAirDashing = true;
                 StartCoroutine(PerformAirDash());
@@ -212,7 +213,7 @@ public class HeroKnight : MonoBehaviour {
         }
 
         // -- Super Jump Logic --
-        if (Input.GetKey(KeyCode.Space) && m_grounded && !m_rolling && !m_isDead)
+        if (Input.GetKey(KeyCode.Space) && m_grounded && !m_rolling && !m_isDead && m_hasSuperJump)
         {
             m_isChargingSuperJump = true;
             m_jumpHoldTime += Time.deltaTime;
@@ -221,18 +222,23 @@ public class HeroKnight : MonoBehaviour {
             if (m_jumpHoldTime >= m_superJumpChargeTime)
                 m_jumpHoldTime = m_superJumpChargeTime;
         }
-        else if (Input.GetKeyUp(KeyCode.Space) && !m_isWallSliding && m_jumpCount < m_maxJumps)
+        else if (Input.GetKeyUp(KeyCode.Space) && !m_isWallSliding && m_jumpCount <= m_maxJumps)
         {
             m_jumpCount++;
+
             float jumpForce = Mathf.Lerp(m_jumpForce, m_superJumpForce, m_jumpHoldTime / m_superJumpChargeTime);
             if (m_grounded)
             {
                 jumpForce = Mathf.Lerp(m_jumpForce, m_superJumpForce, m_jumpHoldTime / m_superJumpChargeTime);
                 m_isChargingSuperJump = false; // Reset super jump charge for grounded jump
             }
-            else if (m_hasDoubleJump)
+            else if (m_hasDoubleJump && m_jumpCount == 2)
             {
                 jumpForce = m_jumpForce; // Use standard jump force for the double jump
+            }
+            else
+            {
+                return; // Exit if no valid jump conditions are met
             }
 
             // Perform the jump with the calculated force
@@ -260,7 +266,7 @@ public class HeroKnight : MonoBehaviour {
         }
 
         // Wall jump logic with buffer time
-        if (m_isWallSliding && m_wallJumpBufferTimeCounter < m_wallJumpBufferTime && Input.GetKeyDown(KeyCode.Space))
+        if (m_isWallSliding && m_wallJumpBufferTimeCounter < m_wallJumpBufferTime && Input.GetKeyDown(KeyCode.Space) && m_hasWallJump)
         {
             // Determine the direction to jump away from the wall
             int wallJumpDirection = isTouchingRightWall ? -1 : 1;  // Right wall -> move left, Left wall -> move right
