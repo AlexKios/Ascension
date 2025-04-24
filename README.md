@@ -88,6 +88,7 @@ Ascension is a 2D action-platformer built in Unity for the Mobile Games course a
 - **Sprites:** Hand-drawn 2D pixel art assets  
 - **Animations:** Frame-based Unity Animator controllers  
 - **Sound Effects & Music:** Royalty-free tracks and SFX, as credited in the `/Assets/Audio` folder
+- All assets are from the Unity Store and are free
 
 ---
 
